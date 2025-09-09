@@ -51,11 +51,9 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         var layerIndex = textLayerIndices[i];
         var originalProps = layerProperties[i];
 
-        // Select original text layer then convert to shapes
         comp.layers[layerIndex].selected = true;
         app.executeCommand(3781);
 
-        // After conversion, AE selects the created shape layer
         var baseShapeLayer =
           comp.selectedLayers && comp.selectedLayers.length > 0
             ? comp.selectedLayers[0]
@@ -114,7 +112,6 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
       layer.solo = props.solo;
       layer.shy = props.shy;
       layer.locked = props.locked;
-      // Do not copy label from text layer; assign shape label separately
       layer.comment = props.comment;
       layer.threeDLayer = props.threeDLayer;
       layer.blendingMode = props.blendingMode;

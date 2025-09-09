@@ -324,6 +324,9 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         var characterLayer = textLayer.duplicate();
         characterLayer.enabled = true;
         characterLayer.name = cleanText[ci];
+        try {
+          characterLayer.solo = originalSolo;
+        } catch (e) {}
         resultLayers.push(characterLayer);
       }
 

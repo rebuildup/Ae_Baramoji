@@ -190,9 +190,11 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
           totalCharsEstimate += Math.max(1, txt.length);
         }
       }
-      var prog =
-        progress || new ProgressDialog("Decompose: Text → Text Layers");
-      prog.setMax(Math.max(1, totalCharsEstimate));
+      // Add overhead steps for per-layer operations to make progress feel more granular
+      var overheadPerLayer = 6; // select, convert, duplicate, refine, cleanup, select results
+      var overheadTotal = Math.max(0, selLayers.length * overheadPerLayer);
+      var prog = progress || new ProgressDialog("Decompose: Text → Texts");
+      prog.setMax(Math.max(1, totalCharsEstimate + overheadTotal));
       if (!progress) prog.show();
 
       for (var layerIdx = 0; layerIdx < selLayers.length; layerIdx++) {
@@ -291,6 +293,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         for (var sdel = 0; sdel < comp.selectedLayers.length; sdel++)
           comp.selectedLayers[sdel].selected = false;
         textLayer.selected = true;
+        prog.step("Converting text to shapes...");
         app.executeCommand(3781);
 
         var shapeLayer = comp.selectedLayers[0];
@@ -306,6 +309,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
           var duplicatedShape = comp.selectedLayers[0].duplicate();
           duplicatedShape.selected = true;
         }
+        prog.step("Duplicated shape layers");
         var allShapes = comp.selectedLayers;
 
         for (var si = 0; si < allShapes.length; si++) {
@@ -320,6 +324,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
             }
           }
         }
+        prog.step("Isolated shape groups");
 
         var shapeAnchorX = [],
           shapeAnchorY = [],
@@ -358,12 +363,12 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
           var characterLayer = textLayer.duplicate();
           characterLayer.enabled = true;
           characterLayer.name = cleanText[ci2];
-          // apply preserved solo state to duplicated character layer
           try {
             characterLayer.solo = originalSolo;
           } catch (e) {}
           resultLayers.push(characterLayer);
         }
+        prog.step("Created character layers");
 
         for (var charIndex = 0; charIndex < cleanText.length; charIndex++) {
           var characterLayer2 = resultLayers[charIndex];
@@ -557,7 +562,6 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 
           characterLayer2.inPoint = layerInPoint;
           characterLayer2.outPoint = layerOutPoint;
-          // ensure solo remains applied
           try {
             characterLayer2.solo = originalSolo;
           } catch (e) {}
@@ -575,6 +579,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
             allShapes[rem].remove();
           } catch (e) {}
         }
+        prog.step("Cleaned up temp shapes");
         try {
           for (var ss = 0; ss < comp.selectedLayers.length; ss++)
             comp.selectedLayers[ss].selected = false;
@@ -584,6 +589,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
             resultLayers[rr].selected = true;
           } catch (e) {}
         }
+        prog.step("Selected result layers");
       }
 
       app.endUndoGroup();
@@ -1167,14 +1173,18 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
     if (!pal) return pal;
 
     pal.orientation = "column";
-    pal.alignChildren = ["fill", "top"];
+    pal.alignChildren = ["fill", "fill"];
     var grp = pal.add("group");
     grp.orientation = "column";
-    grp.alignChildren = ["fill", "top"];
+    grp.alignChildren = ["fill", "fill"];
+    grp.alignment = ["fill", "fill"];
 
     var btn1 = grp.add("button", undefined, "Texts");
     var btn2 = grp.add("button", undefined, "Shapes");
     var btn3 = grp.add("button", undefined, "Parts");
+    btn1.alignment = ["fill", "fill"];
+    btn2.alignment = ["fill", "fill"];
+    btn3.alignment = ["fill", "fill"];
 
     btn1.onClick = function () {
       runDecomposeTextToTextLayers();
@@ -1188,6 +1198,22 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 
     pal.onResizing = pal.onResize = function () {
       this.layout.resize();
+      try {
+        var topBottom = this.margins
+          ? this.margins.top + this.margins.bottom
+          : 0;
+        var availableH = Math.max(0, this.size.height - topBottom);
+        var spacing = grp.spacing || 0;
+        var count = 3;
+        var perH = Math.max(
+          24,
+          Math.floor((availableH - spacing * (count - 1)) / count)
+        );
+        btn1.preferredSize = [0, perH];
+        btn2.preferredSize = [0, perH];
+        btn3.preferredSize = [0, perH];
+        grp.layout.layout(true);
+      } catch (e) {}
     };
     return pal;
   }
@@ -1197,6 +1223,12 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
     try {
       ui.center();
       ui.show();
+    } catch (e) {}
+  } else if (ui) {
+    try {
+      ui.layout.layout(true);
+      ui.layout.resize();
+      ui.visible = true;
     } catch (e) {}
   }
 })(this);

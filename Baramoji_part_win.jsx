@@ -101,7 +101,6 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
       layer.solo = props.solo;
       layer.shy = props.shy;
       layer.locked = props.locked;
-      // Do not copy label color from text layer; keep/assign shape label later
       layer.comment = props.comment;
       layer.threeDLayer = props.threeDLayer;
       layer.blendingMode = props.blendingMode;
@@ -498,12 +497,10 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         var layerIndex = textLayerIndices[i];
         var originalProps = layerProperties[i];
 
-        // Select original text layer, then create shapes
         comp.layers[layerIndex].selected = true;
         updateProgress(12, "Creating shapes from text...");
         app.executeCommand(3781);
 
-        // After command, AE selects the newly created shape layer
         var baseShapeLayer =
           comp.selectedLayers && comp.selectedLayers.length > 0
             ? comp.selectedLayers[0]
@@ -522,6 +519,8 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         updateProgress(28, "Merging parts...");
         processPartsMerge(baseShapeLayer);
 
+        updateProgress(42, "Isolating outlines...");
+        // progress during processPartsDecompose will also step
         updateProgress(55, "Decomposing to parts...");
         processPartsDecompose(baseShapeLayer, originalProps, shapeLabel);
 
@@ -544,7 +543,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
       alert("Error occurred: " + error.toString());
     }
 
-    updateProgress(98, "Finalizing...");
+    updateProgress(96, "Finalizing...");
     $.sleep(150);
     updateProgress(100, "Completed!");
     $.sleep(250);

@@ -38,19 +38,18 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
       statusText.alignment = "center";
 
       progressWindow.updateProgress = function (targetValue, text) {
-        if (progressBar) {
-          var currentValue = Math.round(progressBar.value) || 0;
-          var step = targetValue > currentValue ? 1 : -1;
-          while (currentValue !== targetValue) {
-            currentValue += step;
-            progressBar.value = currentValue;
-            statusText.text = text || String(currentValue) + "% complete";
-            try {
-              progressWindow.update();
-            } catch (e) {}
-            $.sleep(8);
-          }
-        }
+        if (!progressBar) return;
+        var currentValue = Math.round(progressBar.value) || 0;
+        var clampedTarget = Math.max(
+          0,
+          Math.min(100, Math.round(targetValue || 0))
+        );
+        var nextValue = Math.max(currentValue, clampedTarget);
+        progressBar.value = nextValue;
+        statusText.text = text || String(nextValue) + "% complete";
+        try {
+          progressWindow.update();
+        } catch (e) {}
       };
 
       progressWindow.center();
@@ -164,7 +163,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         resultLayers.push(dup);
 
         var progressBase = 22;
-        var progressSpan = 60; // from 22 to 82 during duplication
+        var progressSpan = 60;
         var step =
           progressBase +
           Math.round(
