@@ -157,6 +157,55 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         dup.outPoint = layerOutPoint;
 
         try {
+          var laytrans = dup.property("ADBE Transform Group");
+
+          if (
+            laytrans.property("ADBE Position").numKeys != 0 ||
+            laytrans.property("ADBE Position_0").numKeys != 0 ||
+            laytrans.property("ADBE Position_1").numKeys != 0 ||
+            laytrans.property("ADBE Anchor Point").numKeys != 0
+          ) {
+          } else {
+            var RZ = laytrans.property("ADBE Rotate Z").value;
+            var sourceRect = dup.sourceRectAtTime(0, true);
+            var CX = sourceRect.width * 0.5 + sourceRect.left;
+            var CY = sourceRect.height * 0.5 + sourceRect.top;
+            var scale = laytrans.property("ADBE Scale").value;
+            var SX = scale[0];
+            var SY = scale[1];
+            var anchor = laytrans.property("ADBE Anchor Point").value;
+            var APX = anchor[0];
+            var APY = anchor[1];
+
+            var PX, PY;
+            if (!laytrans.property("ADBE Position").dimensionsSeparated) {
+              var pos = laytrans.property("ADBE Position").value;
+              PX = pos[0];
+              PY = pos[1];
+            } else {
+              PX = laytrans.property("ADBE Position_0").value;
+              PY = laytrans.property("ADBE Position_1").value;
+            }
+
+            laytrans.property("ADBE Anchor Point").setValue([CX, CY, 0]);
+
+            var DX = (CX - APX) * 0.01 * SX;
+            var DY = (CY - APY) * 0.01 * SY;
+            var rotRad = RZ * (Math.PI / 180);
+
+            var newX = PX + (DX * Math.cos(rotRad) - DY * Math.sin(rotRad));
+            var newY = PY + (DX * Math.sin(rotRad) + DY * Math.cos(rotRad));
+
+            if (!laytrans.property("ADBE Position").dimensionsSeparated) {
+              laytrans.property("ADBE Position").setValue([newX, newY, 0]);
+            } else {
+              laytrans.property("ADBE Position_0").setValue(newX);
+              laytrans.property("ADBE Position_1").setValue(newY);
+            }
+          }
+        } catch (e) {}
+
+        try {
           dup.moveBefore(textLayer);
         } catch (e) {}
 

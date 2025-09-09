@@ -520,7 +520,6 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         processPartsMerge(baseShapeLayer);
 
         updateProgress(42, "Isolating outlines...");
-        // progress during processPartsDecompose will also step
         updateProgress(55, "Decomposing to parts...");
         processPartsDecompose(baseShapeLayer, originalProps, shapeLabel);
 
