@@ -1,0 +1,2 @@
+# Ae_Baramoji
+AfterEffectsのテキストレイヤー分解スクリプトです
