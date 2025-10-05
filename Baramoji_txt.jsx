@@ -327,7 +327,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         try {
           characterLayer.solo = originalSolo;
         } catch (e) {}
-        resultLayers.push(characterLayer);
+        resultLayers.unshift(characterLayer);
       }
 
       for (var charIndex = 0; charIndex < cleanText.length; charIndex++) {
@@ -545,10 +545,6 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 
         characterLayer.inPoint = layerInPoint;
         characterLayer.outPoint = layerOutPoint;
-
-        try {
-          characterLayer.moveBefore(textLayer);
-        } catch (e) {}
       }
 
       try {

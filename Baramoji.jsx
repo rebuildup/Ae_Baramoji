@@ -365,7 +365,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
           try {
             characterLayer.solo = originalSolo;
           } catch (e) {}
-          resultLayers.push(characterLayer);
+          resultLayers.unshift(characterLayer);
         }
         prog.step("Created character layers");
 
@@ -564,9 +564,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
           try {
             characterLayer2.solo = originalSolo;
           } catch (e) {}
-          try {
-            characterLayer2.moveBefore(textLayer);
-          } catch (e) {}
+
           prog.step("Characters processed: " + (charIndex + 1));
         }
 
@@ -720,9 +718,6 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
             }
           } catch (e) {}
 
-          try {
-            dup.moveBefore(textLayer);
-          } catch (e) {}
           resultLayers.push(dup);
         }
 
