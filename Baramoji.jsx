@@ -751,13 +751,15 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         var comp = app.project.activeItem;
         if (!comp || !(comp instanceof CompItem)) {
           alert(
-            "No composition is active. Please open a composition and select text layers."
+            "No composition is active. Please open a composition and select text layers or shape layers."
           );
           return;
         }
         var selectedLayers = comp.selectedLayers;
         if (selectedLayers.length === 0) {
-          alert("No layers selected. Please select one or more text layers.");
+          alert(
+            "No layers selected. Please select one or more text layers or shape layers."
+          );
           return;
         }
         app.beginUndoGroup("Text to Parts Decompose");
@@ -765,44 +767,108 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
           var textLayerIndices = [];
           var layerProperties = [];
           for (var i = 0; i < selectedLayers.length; i++) {
-            if (selectedLayers[i] instanceof TextLayer) {
-              textLayerIndices.push(selectedLayers[i].index);
-              layerProperties.push(captureBasicProperties(selectedLayers[i]));
+            var layer = selectedLayers[i];
+            var isTextLayer = layer instanceof TextLayer;
+            var isShapeLayer =
+              layer instanceof AVLayer ||
+              layer.constructor.name === "ShapeLayer";
+            var hasVectorGroup = false;
+
+            try {
+              hasVectorGroup =
+                layer.property("ADBE Root Vectors Group") !== null;
+            } catch (e) {
+              hasVectorGroup = false;
             }
-            selectedLayers[i].selected = false;
+
+            if (isTextLayer || (isShapeLayer && hasVectorGroup)) {
+              textLayerIndices.push(layer.index);
+              layerProperties.push(captureBasicProperties(layer));
+            }
+
+            layer.selected = false;
           }
           textLayerIndices.sort(function (a, b) {
             return a - b;
           });
 
+          if (textLayerIndices.length === 0) {
+            alert(
+              "No valid text layers or shape layers found in selection. Please select layers with vector content."
+            );
+            app.endUndoGroup();
+            return;
+          }
+
           var prog = progress || new ProgressDialog("Decompose: Text → Parts");
           prog.setMax(Math.max(1, textLayerIndices.length));
           if (!progress) prog.show();
 
-          for (var ii = textLayerIndices.length - 1; ii >= 0; ii--) {
+          for (var ii = 0; ii < textLayerIndices.length; ii++) {
             var layerIndex = textLayerIndices[ii];
             var originalProps = layerProperties[ii];
-            comp.layers[layerIndex].selected = true;
-            app.executeCommand(3781);
-            var baseShapeLayer =
-              comp.selectedLayers && comp.selectedLayers.length > 0
-                ? comp.selectedLayers[0]
-                : null;
-            if (!baseShapeLayer) {
-              alert(
-                "Failed to create shapes from text for layer: " +
-                  comp.layers[layerIndex].name
-              );
-              comp.layers[layerIndex].selected = false;
-              continue;
+
+            var currentLayer = comp.layers[layerIndex];
+            currentLayer.selected = true;
+
+            var baseShapeLayer;
+            if (currentLayer instanceof TextLayer) {
+              app.executeCommand(3781);
+              baseShapeLayer =
+                comp.selectedLayers && comp.selectedLayers.length > 0
+                  ? comp.selectedLayers[0]
+                  : null;
+              if (!baseShapeLayer) {
+                alert("Failed to create shapes from text for a layer.");
+                currentLayer.selected = false;
+                continue;
+              }
+            } else {
+              try {
+                if (!currentLayer.property("ADBE Root Vectors Group")) {
+                  alert(
+                    "Selected layer does not contain vector content: " +
+                      currentLayer.name
+                  );
+                  currentLayer.selected = false;
+                  continue;
+                }
+                baseShapeLayer = currentLayer;
+              } catch (e) {
+                alert("Error processing shape layer: " + e.toString());
+                currentLayer.selected = false;
+                continue;
+              }
             }
+
             var shapeLabel = undefined;
             try {
               shapeLabel = baseShapeLayer.label;
             } catch (e) {}
+
             processPartsMerge(baseShapeLayer);
-            processPartsDecompose(baseShapeLayer, originalProps, shapeLabel);
-            prog.step("Layers processed: " + (textLayerIndices.length - ii));
+
+            var keepOriginal = currentLayer.constructor.name === "ShapeLayer";
+            var resultLayers = processPartsDecompose(
+              baseShapeLayer,
+              originalProps,
+              shapeLabel,
+              keepOriginal
+            );
+
+            if (resultLayers && resultLayers.length > 0) {
+              try {
+                for (var s = 0; s < comp.selectedLayers.length; s++) {
+                  comp.selectedLayers[s].selected = false;
+                }
+
+                for (var r = 0; r < resultLayers.length; r++) {
+                  resultLayers[r].selected = true;
+                }
+              } catch (e) {}
+            }
+
+            prog.step("Layers processed: " + (ii + 1));
           }
         } catch (error) {
           alert("Error occurred: " + error.toString());
@@ -1046,7 +1112,12 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         }
       }
 
-      function processPartsDecompose(layer, originalProps, targetLabel) {
+      function processPartsDecompose(
+        layer,
+        originalProps,
+        targetLabel,
+        keepOriginal
+      ) {
         var vectorGroup = layer.property("ADBE Root Vectors Group");
         var proloop = 0;
         var texnum = vectorGroup.numProperties;
@@ -1089,7 +1160,14 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
               } catch (e) {}
             }
             try {
-              duplicatedLayer.moveBefore(layer);
+              // 最初のパーツは元のレイヤーの前に、それ以降は最後に作成されたレイヤーの前に挿入
+              if (resultLayers.length === 0) {
+                duplicatedLayer.moveBefore(layer);
+              } else {
+                // 最後に作成されたレイヤーの前に挿入
+                var lastLayer = resultLayers[resultLayers.length - 1];
+                duplicatedLayer.moveBefore(lastLayer);
+              }
             } catch (e) {}
             resultLayers.push(duplicatedLayer);
             prowloop++;
@@ -1118,27 +1196,28 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
             } catch (e) {}
           }
           try {
-            finalLayer.moveBefore(layer);
+            // 最終レイヤーは最後に作成されたレイヤーの前に挿入
+            if (resultLayers.length === 0) {
+              finalLayer.moveBefore(layer);
+            } else {
+              var lastLayer = resultLayers[resultLayers.length - 1];
+              finalLayer.moveBefore(lastLayer);
+            }
           } catch (e) {}
           resultLayers.push(finalLayer);
           vectorGroup.property(1).remove();
           proloop++;
         }
-        try {
-          layer.remove();
-        } catch (e) {}
-        if (resultLayers.length > 0) {
-          resultLayers.reverse();
+        if (keepOriginal) {
           try {
-            resultLayers[0].selected = true;
+            layer.enabled = false;
           } catch (e) {}
-          for (var i4 = 1; i4 < resultLayers.length; i4++) {
-            try {
-              resultLayers[i4].moveAfter(resultLayers[i4 - 1]);
-              resultLayers[i4].selected = true;
-            } catch (e) {}
-          }
+        } else {
+          try {
+            layer.remove();
+          } catch (e) {}
         }
+        return resultLayers;
       }
 
       function adjustAnchorPoint(layer, pet) {

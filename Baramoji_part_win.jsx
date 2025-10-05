@@ -361,7 +361,12 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
     } catch (e) {}
   }
 
-  function processPartsDecompose(layer, originalProps, targetLabel) {
+  function processPartsDecompose(
+    layer,
+    originalProps,
+    targetLabel,
+    keepOriginal
+  ) {
     var vectorGroup = layer.property("ADBE Root Vectors Group");
     var proloop = 0;
     var texnum = vectorGroup.numProperties;
@@ -401,7 +406,12 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
           } catch (e) {}
         }
         try {
-          duplicatedLayer.moveBefore(layer);
+          if (resultLayers.length === 0) {
+            duplicatedLayer.moveBefore(layer);
+          } else {
+            var lastLayer = resultLayers[resultLayers.length - 1];
+            duplicatedLayer.moveBefore(lastLayer);
+          }
         } catch (e) {}
         resultLayers.push(duplicatedLayer);
         prowloop++;
@@ -430,28 +440,28 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         } catch (e) {}
       }
       try {
-        finalLayer.moveBefore(layer);
+        if (resultLayers.length === 0) {
+          finalLayer.moveBefore(layer);
+        } else {
+          var lastLayer = resultLayers[resultLayers.length - 1];
+          finalLayer.moveBefore(lastLayer);
+        }
       } catch (e) {}
       resultLayers.push(finalLayer);
       vectorGroup.property(1).remove();
       proloop++;
       updateProgress(75, "Finalizing character...");
     }
-    try {
-      layer.remove();
-    } catch (e) {}
-    if (resultLayers.length > 0) {
-      resultLayers.reverse();
+    if (keepOriginal) {
       try {
-        resultLayers[0].selected = true;
+        layer.enabled = false;
       } catch (e) {}
-      for (var i = 1; i < resultLayers.length; i++) {
-        try {
-          resultLayers[i].moveAfter(resultLayers[i - 1]);
-          resultLayers[i].selected = true;
-        } catch (e) {}
-      }
+    } else {
+      try {
+        layer.remove();
+      } catch (e) {}
     }
+    return resultLayers;
   }
 
   try {
@@ -471,7 +481,9 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 
     var selectedLayers = comp.selectedLayers;
     if (!selectedLayers || selectedLayers.length === 0) {
-      alert("No layers selected. Please select one or more text layers.");
+      alert(
+        "No layers selected. Please select one or more text layers or shape layers."
+      );
       closeProgressWindow();
       app.endUndoGroup();
       return;
@@ -483,32 +495,75 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
       var textLayerIndices = [];
       var layerProperties = [];
       for (var iSel = 0; iSel < selectedLayers.length; iSel++) {
-        if (selectedLayers[iSel] instanceof TextLayer) {
-          textLayerIndices.push(selectedLayers[iSel].index);
-          layerProperties.push(captureBasicProperties(selectedLayers[iSel]));
+        var layer = selectedLayers[iSel];
+        var isTextLayer = layer instanceof TextLayer;
+        var isShapeLayer =
+          layer instanceof AVLayer || layer.constructor.name === "ShapeLayer";
+        var hasVectorGroup = false;
+
+        try {
+          hasVectorGroup = layer.property("ADBE Root Vectors Group") !== null;
+        } catch (e) {
+          hasVectorGroup = false;
         }
-        selectedLayers[iSel].selected = false;
+
+        if (isTextLayer || (isShapeLayer && hasVectorGroup)) {
+          textLayerIndices.push(layer.index);
+          layerProperties.push(captureBasicProperties(layer));
+        }
+
+        layer.selected = false;
       }
       textLayerIndices.sort(function (a, b) {
         return a - b;
       });
 
-      for (var i = textLayerIndices.length - 1; i >= 0; i--) {
+      if (textLayerIndices.length === 0) {
+        alert(
+          "No valid text layers or shape layers found in selection. Please select layers with vector content."
+        );
+        closeProgressWindow();
+        app.endUndoGroup();
+        return;
+      }
+
+      for (var i = 0; i < textLayerIndices.length; i++) {
         var layerIndex = textLayerIndices[i];
         var originalProps = layerProperties[i];
 
-        comp.layers[layerIndex].selected = true;
-        updateProgress(12, "Creating shapes from text...");
-        app.executeCommand(3781);
+        var currentLayer = comp.layers[layerIndex];
+        currentLayer.selected = true;
 
-        var baseShapeLayer =
-          comp.selectedLayers && comp.selectedLayers.length > 0
-            ? comp.selectedLayers[0]
-            : null;
-        if (!baseShapeLayer) {
-          alert("Failed to create shapes from text for a layer.");
-          comp.layers[layerIndex].selected = false;
-          continue;
+        var baseShapeLayer;
+        if (currentLayer instanceof TextLayer) {
+          updateProgress(12, "Creating shapes from text...");
+          app.executeCommand(3781);
+          baseShapeLayer =
+            comp.selectedLayers && comp.selectedLayers.length > 0
+              ? comp.selectedLayers[0]
+              : null;
+          if (!baseShapeLayer) {
+            alert("Failed to create shapes from text for a layer.");
+            currentLayer.selected = false;
+            continue;
+          }
+        } else {
+          try {
+            if (!currentLayer.property("ADBE Root Vectors Group")) {
+              alert(
+                "Selected layer does not contain vector content: " +
+                  currentLayer.name
+              );
+              currentLayer.selected = false;
+              continue;
+            }
+            baseShapeLayer = currentLayer;
+            updateProgress(12, "Processing shape layer...");
+          } catch (e) {
+            alert("Error processing shape layer: " + e.toString());
+            currentLayer.selected = false;
+            continue;
+          }
         }
 
         var shapeLabel = undefined;
@@ -521,21 +576,32 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 
         updateProgress(42, "Isolating outlines...");
         updateProgress(55, "Decomposing to parts...");
-        processPartsDecompose(baseShapeLayer, originalProps, shapeLabel);
+
+        var keepOriginal = currentLayer.constructor.name === "ShapeLayer";
+        var resultLayers = processPartsDecompose(
+          baseShapeLayer,
+          originalProps,
+          shapeLabel,
+          keepOriginal
+        );
+
+        if (resultLayers && resultLayers.length > 0) {
+          try {
+            for (var s = 0; s < comp.selectedLayers.length; s++) {
+              comp.selectedLayers[s].selected = false;
+            }
+
+            for (var r = 0; r < resultLayers.length; r++) {
+              resultLayers[r].selected = true;
+            }
+          } catch (e) {}
+        }
 
         var layerProgress =
-          60 +
-          Math.round(
-            ((textLayerIndices.length - 1 - i) /
-              Math.max(1, textLayerIndices.length)) *
-              35
-          );
+          60 + Math.round((i / Math.max(1, textLayerIndices.length)) * 35);
         updateProgress(
           Math.min(layerProgress, 95),
-          "Processed layer " +
-            (textLayerIndices.length - i) +
-            "/" +
-            textLayerIndices.length
+          "Processed layer " + (i + 1) + "/" + textLayerIndices.length
         );
       }
     } catch (error) {
