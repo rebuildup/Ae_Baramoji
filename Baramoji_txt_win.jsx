@@ -49,7 +49,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         statusText.text = text || String(nextValue) + "% complete";
         try {
           progressWindow.update();
-        } catch (e) {}
+        } catch (e) { }
       };
 
       progressWindow.center();
@@ -67,7 +67,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
     if (progressWindow) {
       try {
         progressWindow.close();
-      } catch (e) {}
+      } catch (e) { }
       progressWindow = null;
       progressBar = null;
       statusText = null;
@@ -146,14 +146,14 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
     function applyMatrixToOffset(matrix, xOffset, yOffset, zOffset) {
       return [
         xOffset * matrix[0][0] +
-          yOffset * matrix[0][1] +
-          zOffset * matrix[0][2],
+        yOffset * matrix[0][1] +
+        zOffset * matrix[0][2],
         xOffset * matrix[1][0] +
-          yOffset * matrix[1][1] +
-          zOffset * matrix[1][2],
+        yOffset * matrix[1][1] +
+        zOffset * matrix[1][2],
         xOffset * matrix[2][0] +
-          yOffset * matrix[2][1] +
-          zOffset * matrix[2][2],
+        yOffset * matrix[2][1] +
+        zOffset * matrix[2][2],
       ];
     }
 
@@ -164,7 +164,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
       } else {
         try {
           transformProperty.setValue(newPosition);
-        } catch (e) {}
+        } catch (e) { }
       }
     }
 
@@ -191,7 +191,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         var ef = layer.property("ADBE Effect Parade");
         if (!ef) return false;
         if (ef.property("PEDG") || ef.property("PEDG2")) return true;
-      } catch (e) {}
+      } catch (e) { }
       return false;
     }
 
@@ -206,7 +206,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
           width / 2 + left,
           height / 2 + top,
         ]);
-      } catch (e) {}
+      } catch (e) { }
       try {
         if (!layer.transform.position.dimensionsSeparated) {
           setPosition(layer.transform("ADBE Position"), [posX, posY]);
@@ -217,7 +217,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
       } catch (e) {
         try {
           layer.transform.position.setValue([posX, posY]);
-        } catch (e2) {}
+        } catch (e2) { }
       }
     }
 
@@ -233,7 +233,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
       if (hasDeepGlow(textLayer)) {
         alert(
           "Please temporarily remove the Deep Glow effect from the layer: " +
-            textLayer.name
+          textLayer.name
         );
         continue;
       }
@@ -245,12 +245,12 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         var s = textLayer.transform.scale.value;
         if (s.length === 2) originalScale = [s[0], s[1]];
         else if (s.length === 3) originalScale = [s[0], s[1]];
-      } catch (e) {}
+      } catch (e) { }
 
       var originalSolo = false;
       try {
         originalSolo = textLayer.solo === true;
-      } catch (e) {}
+      } catch (e) { }
 
       var layerInPoint = textLayer.inPoint;
       var layerOutPoint = textLayer.outPoint;
@@ -258,7 +258,8 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
       var originalText = textLayer.text.sourceText.value;
       var textContent = String(originalText);
 
-      var cleanedForChars = textContent.replace(/\r|\n|\u0003/g, "");
+      // keep newline characters so style arrays stay aligned with character indices
+      var cleanedForChars = textContent.replace(/\u0003/g, "");
       updateProgress(8, "Retrieving text styles...");
       var textFontSize = getPropertyArray("fontSize", textLayer).split(",");
       var textFont = getPropertyArray("font", textLayer).split(",");
@@ -359,7 +360,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
           if (pi !== si + 1) {
             try {
               curContents.property(pi).remove();
-            } catch (e) {}
+            } catch (e) { }
           }
         }
       }
@@ -410,7 +411,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         characterLayer.name = cleanText[ci];
         try {
           characterLayer.solo = originalSolo;
-        } catch (e) {}
+        } catch (e) { }
         resultLayers.unshift(characterLayer);
       }
 
@@ -418,10 +419,10 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         updateProgress(
           50 + Math.round((charIndex / Math.max(1, cleanText.length)) * 40),
           "Processing character " +
-            (charIndex + 1) +
-            "/" +
-            cleanText.length +
-            "..."
+          (charIndex + 1) +
+          "/" +
+          cleanText.length +
+          "..."
         );
 
         var characterLayer = resultLayers[charIndex];
@@ -491,7 +492,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
             )
               charTextDocument.tsume = Number(textTsume[charIndex]);
           }
-        } catch (styleError) {}
+        } catch (styleError) { }
 
         characterLayer.text.sourceText.setValue(charTextDocument);
 
@@ -515,7 +516,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
           );
 
           characterLayer.text.sourceText.setValue(charTextDocument);
-        } catch (e) {}
+        } catch (e) { }
 
         try {
           var lb = characterLayer.sourceRectAtTime(curTime, false);
@@ -526,7 +527,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 
           try {
             characterLayer.transform.anchorPoint.setValue(charAnchorLocal);
-          } catch (e) {}
+          } catch (e) { }
 
           var textAP = textLayer.transform.anchorPoint.value;
 
@@ -571,7 +572,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
             var ori = [0, 0, 0];
             try {
               ori = textLayer.transform.orientation.value;
-            } catch (e) {}
+            } catch (e) { }
             var xRot = textLayer.transform.xRotation
               ? textLayer.transform.xRotation.value
               : 0;
@@ -625,7 +626,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
             } catch (e) {
               try {
                 characterLayer.transform.position.setValue(finalPos3);
-              } catch (e2) {}
+              } catch (e2) { }
             }
           }
         } catch (posError) {
@@ -633,7 +634,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
             characterLayer.transform.position.setValue(
               textLayer.transform.position.value
             );
-          } catch (e2) {}
+          } catch (e2) { }
         }
 
         characterLayer.inPoint = layerInPoint;
@@ -642,22 +643,22 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 
       try {
         textLayer.enabled = false;
-      } catch (e) {}
+      } catch (e) { }
 
       for (var rem = 0; rem < allShapes.length; rem++) {
         try {
           allShapes[rem].remove();
-        } catch (e) {}
+        } catch (e) { }
       }
 
       try {
         for (var ss = 0; ss < comp.selectedLayers.length; ss++)
           comp.selectedLayers[ss].selected = false;
-      } catch (e) {}
+      } catch (e) { }
       for (var rr = 0; rr < resultLayers.length; rr++) {
         try {
           resultLayers[rr].selected = true;
-        } catch (e) {}
+        } catch (e) { }
       }
 
       updateProgress(
@@ -676,7 +677,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
   } catch (err) {
     try {
       app.endUndoGroup();
-    } catch (e) {}
+    } catch (e) { }
     closeProgressWindow();
     alert("Error: " + (err && err.toString ? err.toString() : err));
   }

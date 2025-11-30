@@ -49,7 +49,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         statusText.text = text || String(nextValue) + "% complete";
         try {
           progressWindow.update();
-        } catch (e) {}
+        } catch (e) { }
       };
 
       progressWindow.center();
@@ -67,7 +67,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
     if (progressWindow) {
       try {
         progressWindow.close();
-      } catch (e) {}
+      } catch (e) { }
       progressWindow = null;
       progressBar = null;
       statusText = null;
@@ -89,7 +89,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
       props.threeDLayer = layer.threeDLayer;
       props.parent = layer.parent;
       props.blendingMode = layer.blendingMode;
-    } catch (e) {}
+    } catch (e) { }
     return props;
   }
 
@@ -107,9 +107,9 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
       if (props.parent) {
         try {
           layer.parent = props.parent;
-        } catch (e) {}
+        } catch (e) { }
       }
-    } catch (e) {}
+    } catch (e) { }
   }
 
   function processPartsMerge(layer) {
@@ -256,7 +256,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
               if (
                 checkpoint[0] <
                 bppointpos[i2][0] +
-                  vt * (bppointpos[nexdex2][0] - bppointpos[i2][0])
+                vt * (bppointpos[nexdex2][0] - bppointpos[i2][0])
               ) {
                 cn++;
               }
@@ -358,7 +358,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         laytrans.property("ADBE Position_0").setValue(newX);
         laytrans.property("ADBE Position_1").setValue(newY);
       }
-    } catch (e) {}
+    } catch (e) { }
   }
 
   function processPartsDecompose(
@@ -403,7 +403,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         if (typeof targetLabel !== "undefined") {
           try {
             duplicatedLayer.label = targetLabel;
-          } catch (e) {}
+          } catch (e) { }
         }
         try {
           if (resultLayers.length === 0) {
@@ -412,7 +412,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
             var lastLayer = resultLayers[resultLayers.length - 1];
             duplicatedLayer.moveBefore(lastLayer);
           }
-        } catch (e) {}
+        } catch (e) { }
         resultLayers.push(duplicatedLayer);
         prowloop++;
         updateProgress(
@@ -437,7 +437,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
       if (typeof targetLabel !== "undefined") {
         try {
           finalLayer.label = targetLabel;
-        } catch (e) {}
+        } catch (e) { }
       }
       try {
         if (resultLayers.length === 0) {
@@ -446,7 +446,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
           var lastLayer = resultLayers[resultLayers.length - 1];
           finalLayer.moveBefore(lastLayer);
         }
-      } catch (e) {}
+      } catch (e) { }
       resultLayers.push(finalLayer);
       vectorGroup.property(1).remove();
       proloop++;
@@ -455,11 +455,11 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
     if (keepOriginal) {
       try {
         layer.enabled = false;
-      } catch (e) {}
+      } catch (e) { }
     } else {
       try {
         layer.remove();
-      } catch (e) {}
+      } catch (e) { }
     }
     return resultLayers;
   }
@@ -552,7 +552,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
             if (!currentLayer.property("ADBE Root Vectors Group")) {
               alert(
                 "Selected layer does not contain vector content: " +
-                  currentLayer.name
+                currentLayer.name
               );
               currentLayer.selected = false;
               continue;
@@ -569,7 +569,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         var shapeLabel = undefined;
         try {
           shapeLabel = baseShapeLayer.label;
-        } catch (e) {}
+        } catch (e) { }
 
         updateProgress(28, "Merging parts...");
         processPartsMerge(baseShapeLayer);
@@ -594,7 +594,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
             for (var r = 0; r < resultLayers.length; r++) {
               resultLayers[r].selected = true;
             }
-          } catch (e) {}
+          } catch (e) { }
         }
 
         var layerProgress =
@@ -617,7 +617,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
   } catch (err) {
     try {
       app.endUndoGroup();
-    } catch (e) {}
+    } catch (e) { }
     closeProgressWindow();
     alert("Error: " + (err && err.toString ? err.toString() : err));
   }

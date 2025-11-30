@@ -49,7 +49,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         statusText.text = text || String(nextValue) + "% complete";
         try {
           progressWindow.update();
-        } catch (e) {}
+        } catch (e) { }
       };
 
       progressWindow.center();
@@ -67,7 +67,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
     if (progressWindow) {
       try {
         progressWindow.close();
-      } catch (e) {}
+      } catch (e) { }
       progressWindow = null;
       progressBar = null;
       statusText = null;
@@ -146,7 +146,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
           if (j !== i + 1) {
             try {
               dupContents.property(j).remove();
-            } catch (e) {}
+            } catch (e) { }
           }
         }
 
@@ -203,11 +203,11 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
               laytrans.property("ADBE Position_1").setValue(newY);
             }
           }
-        } catch (e) {}
+        } catch (e) { }
 
         try {
           dup.moveBefore(textLayer);
-        } catch (e) {}
+        } catch (e) { }
 
         resultLayers.push(dup);
 
@@ -228,15 +228,15 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 
       try {
         textLayer.enabled = false;
-      } catch (e) {}
+      } catch (e) { }
       try {
         baseShapeLayer.remove();
-      } catch (e) {}
+      } catch (e) { }
 
       for (var rr = 0; rr < resultLayers.length; rr++) {
         try {
           resultLayers[rr].selected = true;
-        } catch (e) {}
+        } catch (e) { }
       }
 
       updateProgress(
@@ -255,7 +255,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
   } catch (err) {
     try {
       app.endUndoGroup();
-    } catch (e) {}
+    } catch (e) { }
     closeProgressWindow();
     alert("Error: " + (err && err.toString ? err.toString() : err));
   }

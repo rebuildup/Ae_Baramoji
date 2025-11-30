@@ -27,25 +27,25 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
       try {
         this.bar.maxvalue = Math.max(1, max);
         this.bar.value = 0;
-      } catch (e) {}
+      } catch (e) { }
     };
     this.step = function (text) {
       try {
         if (text) this.msg.text = text;
         this.bar.value = Math.min(this.bar.value + 1, this.bar.maxvalue);
         this.win.update();
-      } catch (e) {}
+      } catch (e) { }
     };
     this.show = function () {
       try {
         this.win.show();
         this.win.update();
-      } catch (e) {}
+      } catch (e) { }
     };
     this.close = function () {
       try {
         this.win.close();
-      } catch (e) {}
+      } catch (e) { }
     };
   }
 
@@ -110,14 +110,14 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
       function applyMatrixToOffset(matrix, xOffset, yOffset, zOffset) {
         return [
           xOffset * matrix[0][0] +
-            yOffset * matrix[0][1] +
-            zOffset * matrix[0][2],
+          yOffset * matrix[0][1] +
+          zOffset * matrix[0][2],
           xOffset * matrix[1][0] +
-            yOffset * matrix[1][1] +
-            zOffset * matrix[1][2],
+          yOffset * matrix[1][1] +
+          zOffset * matrix[1][2],
           xOffset * matrix[2][0] +
-            yOffset * matrix[2][1] +
-            zOffset * matrix[2][2],
+          yOffset * matrix[2][1] +
+          zOffset * matrix[2][2],
         ];
       }
       function setPosition(transformProperty, newPosition) {
@@ -127,7 +127,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         } else {
           try {
             transformProperty.setValue(newPosition);
-          } catch (e) {}
+          } catch (e) { }
         }
       }
       function getPropertyArray(property, layer) {
@@ -151,7 +151,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
           var ef = layer.property("ADBE Effect Parade");
           if (!ef) return false;
           if (ef.property("PEDG") || ef.property("PEDG2")) return true;
-        } catch (e) {}
+        } catch (e) { }
         return false;
       }
       function adjustLayerPosition(layer, posX, posY) {
@@ -165,7 +165,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
             width / 2 + left,
             height / 2 + top,
           ]);
-        } catch (e) {}
+        } catch (e) { }
         try {
           if (!layer.transform.position.dimensionsSeparated) {
             setPosition(layer.transform("ADBE Position"), [posX, posY]);
@@ -176,7 +176,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         } catch (e) {
           try {
             layer.transform.position.setValue([posX, posY]);
-          } catch (e2) {}
+          } catch (e2) { }
         }
       }
 
@@ -203,7 +203,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         if (hasDeepGlow(textLayer)) {
           alert(
             "Please temporarily remove the Deep Glow effect from the layer: " +
-              textLayer.name
+            textLayer.name
           );
           continue;
         }
@@ -213,12 +213,12 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
           var s = textLayer.transform.scale.value;
           if (s.length === 2) originalScale = [s[0], s[1]];
           else if (s.length === 3) originalScale = [s[0], s[1]];
-        } catch (e) {}
+        } catch (e) { }
 
         var originalSolo = false;
         try {
           originalSolo = textLayer.solo === true;
-        } catch (e) {}
+        } catch (e) { }
 
         var layerInPoint = textLayer.inPoint;
         var layerOutPoint = textLayer.outPoint;
@@ -226,7 +226,8 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         var originalText = textLayer.text.sourceText.value;
         var textContent = String(originalText);
 
-        var cleanedForChars = textContent.replace(/\r|\n|\u0003/g, "");
+        // keep newline characters so style arrays stay aligned with character indices
+        var cleanedForChars = textContent.replace(/\u0003/g, "");
         var textFontSize = getPropertyArray("fontSize", textLayer).split(",");
         var textFont = getPropertyArray("font", textLayer).split(",");
         var textApplyFill = getPropertyArray("applyFill", textLayer).split(",");
@@ -319,7 +320,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
             if (pi !== si + 1) {
               try {
                 curContents.property(pi).remove();
-              } catch (e) {}
+              } catch (e) { }
             }
           }
         }
@@ -364,7 +365,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
           characterLayer.name = cleanText[ci2];
           try {
             characterLayer.solo = originalSolo;
-          } catch (e) {}
+          } catch (e) { }
           resultLayers.unshift(characterLayer);
         }
         prog.step("Created character layers");
@@ -427,7 +428,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
               )
                 charTextDocument.tsume = Number(textTsume[charIndex]);
             }
-          } catch (styleError) {}
+          } catch (styleError) { }
 
           characterLayer2.text.sourceText.setValue(charTextDocument);
 
@@ -447,7 +448,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
               1000
             );
             characterLayer2.text.sourceText.setValue(charTextDocument);
-          } catch (e) {}
+          } catch (e) { }
 
           try {
             var lb = characterLayer2.sourceRectAtTime(curTime, false);
@@ -457,7 +458,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
             ];
             try {
               characterLayer2.transform.anchorPoint.setValue(charAnchorLocal);
-            } catch (e) {}
+            } catch (e) { }
             var textAP = textLayer.transform.anchorPoint.value;
             var sx = shapeAnchorX[charIndex];
             var sy = shapeAnchorY[charIndex];
@@ -498,7 +499,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
               var ori = [0, 0, 0];
               try {
                 ori = textLayer.transform.orientation.value;
-              } catch (e) {}
+              } catch (e) { }
               var xRot = textLayer.transform.xRotation
                 ? textLayer.transform.xRotation.value
                 : 0;
@@ -548,7 +549,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
               } catch (e) {
                 try {
                   characterLayer2.transform.position.setValue(finalPos3);
-                } catch (e2) {}
+                } catch (e2) { }
               }
             }
           } catch (posError) {
@@ -556,35 +557,35 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
               characterLayer2.transform.position.setValue(
                 textLayer.transform.position.value
               );
-            } catch (e2) {}
+            } catch (e2) { }
           }
 
           characterLayer2.inPoint = layerInPoint;
           characterLayer2.outPoint = layerOutPoint;
           try {
             characterLayer2.solo = originalSolo;
-          } catch (e) {}
+          } catch (e) { }
 
           prog.step("Characters processed: " + (charIndex + 1));
         }
 
         try {
           textLayer.enabled = false;
-        } catch (e) {}
+        } catch (e) { }
         for (var rem = 0; rem < allShapes.length; rem++) {
           try {
             allShapes[rem].remove();
-          } catch (e) {}
+          } catch (e) { }
         }
         prog.step("Cleaned up temp shapes");
         try {
           for (var ss = 0; ss < comp.selectedLayers.length; ss++)
             comp.selectedLayers[ss].selected = false;
-        } catch (e) {}
+        } catch (e) { }
         for (var rr = 0; rr < resultLayers.length; rr++) {
           try {
             resultLayers[rr].selected = true;
-          } catch (e) {}
+          } catch (e) { }
         }
         prog.step("Selected result layers");
       }
@@ -594,7 +595,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
     } catch (err) {
       try {
         app.endUndoGroup();
-      } catch (e) {}
+      } catch (e) { }
       alert("Error: " + (err && err.toString ? err.toString() : err));
     }
   }
@@ -634,7 +635,8 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         var layerOutPoint = textLayer.outPoint;
 
         var textContent = String(textLayer.text.sourceText.value);
-        var cleanedForChars = textContent.replace(/\r|\n|\u0003/g, "");
+        // keep newline characters so style arrays stay aligned with character indices
+        var cleanedForChars = textContent.replace(/\u0003/g, "");
         var cleanText = cleanedForChars.replace(/\s+/g, "");
 
         for (var sdel = 0; sdel < comp.selectedLayers.length; sdel++)
@@ -661,7 +663,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
             if (j !== i + 1) {
               try {
                 dupContents.property(j).remove();
-              } catch (e) {}
+              } catch (e) { }
             }
           }
           var charName = cleanText[i] ? cleanText[i] : i + 1;
@@ -716,21 +718,21 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
                 laytrans.property("ADBE Position_1").setValue(newY);
               }
             }
-          } catch (e) {}
+          } catch (e) { }
 
           resultLayers.push(dup);
         }
 
         try {
           textLayer.enabled = false;
-        } catch (e) {}
+        } catch (e) { }
         try {
           baseShapeLayer.remove();
-        } catch (e) {}
+        } catch (e) { }
         for (var rr = 0; rr < resultLayers.length; rr++) {
           try {
             resultLayers[rr].selected = true;
-          } catch (e) {}
+          } catch (e) { }
         }
         prog.step("Layers processed: " + (layerIdx + 1));
       }
@@ -740,7 +742,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
     } catch (err) {
       try {
         app.endUndoGroup();
-      } catch (e) {}
+      } catch (e) { }
       alert("Error: " + (err && err.toString ? err.toString() : err));
     }
   }
@@ -828,7 +830,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
                 if (!currentLayer.property("ADBE Root Vectors Group")) {
                   alert(
                     "Selected layer does not contain vector content: " +
-                      currentLayer.name
+                    currentLayer.name
                   );
                   currentLayer.selected = false;
                   continue;
@@ -844,7 +846,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
             var shapeLabel = undefined;
             try {
               shapeLabel = baseShapeLayer.label;
-            } catch (e) {}
+            } catch (e) { }
 
             processPartsMerge(baseShapeLayer);
 
@@ -865,7 +867,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
                 for (var r = 0; r < resultLayers.length; r++) {
                   resultLayers[r].selected = true;
                 }
-              } catch (e) {}
+              } catch (e) { }
             }
 
             prog.step("Layers processed: " + (ii + 1));
@@ -891,7 +893,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
           props.threeDLayer = layer.threeDLayer;
           props.parent = layer.parent;
           props.blendingMode = layer.blendingMode;
-        } catch (e) {}
+        } catch (e) { }
         return props;
       }
 
@@ -909,15 +911,17 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
           if (props.parent) {
             try {
               layer.parent = props.parent;
-            } catch (e) {}
+            } catch (e) { }
           }
-        } catch (e) {}
+        } catch (e) { }
       }
 
       function processPartsMerge(layer) {
         var vectorGroup = layer.property("ADBE Root Vectors Group");
         var prowloop = 1;
+        var guardMerge = 0;
         while (prowloop <= vectorGroup.numProperties) {
+          if (++guardMerge > 20000) throw new Error("processPartsMerge: loop guard hit (prowloop)");
           var pathcount = 1;
           var pathnum = 3;
           var nowtext = vectorGroup.property(prowloop).property(2);
@@ -930,7 +934,9 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
           var pathveccheckloop = 1;
           var areavecchash = [];
           var pathnowloop = 0;
+          var guardVecCheck = 0;
           while (pathveccheckloop <= nowtext.numProperties - pathnum) {
+            if (++guardVecCheck > 20000) throw new Error("processPartsMerge: loop guard hit (pathveccheckloop)");
             var nexdex = 0;
             var areachash = 0;
             var nowpath = nowtext.property(pathveccheckloop).property(2);
@@ -949,7 +955,9 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
           if (maxarea > 0) {
             mavec = false;
           }
+          var guardPathCount = 0;
           while (pathcount <= nowtext.numProperties - pathnum) {
+            if (++guardPathCount > 20000) throw new Error("processPartsMerge: loop guard hit (pathcount)");
             area[pathcount - 1] = areavecchash[pathnowloop];
             if (area[pathcount - 1] < 0 == mavec) {
               var countloop = 1;
@@ -975,7 +983,9 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
               nowtext.property(pathcount).property(2).property(1).name =
                 nowtext.property(pathcount + 1).name;
               nowtext.property(pathcount + 1).remove();
+              var guardCountLoop = 0;
               while (countloop < pathcount) {
+                if (++guardCountLoop > 20000) throw new Error("processPartsMerge: loop guard hit (countloop)");
                 if (area[countloop - 1] < area[pathcount - 1]) {
                   nowtext.property(pathcount).moveTo(countloop);
                   area.splice(countloop - 1, 0, area[pathcount - 1]);
@@ -994,10 +1004,14 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
             pathnowloop++;
           }
           var countloop2 = 1;
+          var guardCountLoop2 = 0;
           while (countloop2 < pathcount) {
+            if (++guardCountLoop2 > 20000) throw new Error("processPartsMerge: loop guard hit (countloop2)");
             var contentsloop = 0;
             var Mflag = false;
+            var guardContentsLoop = 0;
             while (contentsloop < nowtext.numProperties - (pathcount + 2)) {
+              if (++guardContentsLoop > 20000) throw new Error("processPartsMerge: loop guard hit (contentsloop)");
               var ppflag = false;
               var checkpoint = [
                 nowtext.property(pathcount + contentsloop).property(2).value
@@ -1067,7 +1081,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
                   if (
                     checkpoint[0] <
                     bppointpos[i3][0] +
-                      vt * (bppointpos[nexdex2][0] - bppointpos[i3][0])
+                    vt * (bppointpos[nexdex2][0] - bppointpos[i3][0])
                   ) {
                     cn++;
                   }
@@ -1122,19 +1136,25 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         var proloop = 0;
         var texnum = vectorGroup.numProperties;
         var resultLayers = [];
+        var guardProloop = 0;
         while (proloop < texnum) {
+          if (++guardProloop > 20000) throw new Error("processPartsDecompose: loop guard hit (proloop)");
           var character = vectorGroup.property(1);
           var contents = character.property(2);
           var pronum = contents.numProperties - 3;
           var prowloop = 1;
+          var guardProwloop = 0;
           while (prowloop < pronum) {
+            if (++guardProwloop > 20000) throw new Error("processPartsDecompose: loop guard hit (prowloop)");
             var duplicatedLayer = layer.duplicate();
             duplicatedLayer.name = character.name + " Outline ";
             var dupContents = duplicatedLayer
               .property("ADBE Root Vectors Group")
               .property(1)
               .property(2);
+            var guardDupContents = 0;
             while (dupContents.numProperties > 4) {
+              if (++guardDupContents > 20000) throw new Error("processPartsDecompose: loop guard hit (dupContents)");
               dupContents.property(2).remove();
             }
             if (
@@ -1143,10 +1163,12 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
               dupContents.property(2).remove();
             }
             contents.property(1).remove();
+            var guardDupRemove = 0;
             while (
               duplicatedLayer.property("ADBE Root Vectors Group")
                 .numProperties > 1
             ) {
+              if (++guardDupRemove > 20000) throw new Error("processPartsDecompose: loop guard hit (dupRemove)");
               duplicatedLayer
                 .property("ADBE Root Vectors Group")
                 .property(2)
@@ -1157,7 +1179,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
             if (typeof targetLabel !== "undefined") {
               try {
                 duplicatedLayer.label = targetLabel;
-              } catch (e) {}
+              } catch (e) { }
             }
             try {
               // 最初のパーツは元のレイヤーの前に、それ以降は最後に作成されたレイヤーの前に挿入
@@ -1168,7 +1190,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
                 var lastLayer = resultLayers[resultLayers.length - 1];
                 duplicatedLayer.moveBefore(lastLayer);
               }
-            } catch (e) {}
+            } catch (e) { }
             resultLayers.push(duplicatedLayer);
             prowloop++;
           }
@@ -1183,9 +1205,11 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
           ) {
             finalContents.property(2).remove();
           }
+          var guardFinalRemove = 0;
           while (
             finalLayer.property("ADBE Root Vectors Group").numProperties > 1
           ) {
+            if (++guardFinalRemove > 20000) throw new Error("processPartsDecompose: loop guard hit (finalRemove)");
             finalLayer.property("ADBE Root Vectors Group").property(2).remove();
           }
           adjustAnchorPoint(finalLayer, 2);
@@ -1193,7 +1217,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
           if (typeof targetLabel !== "undefined") {
             try {
               finalLayer.label = targetLabel;
-            } catch (e) {}
+            } catch (e) { }
           }
           try {
             // 最終レイヤーは最後に作成されたレイヤーの前に挿入
@@ -1203,7 +1227,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
               var lastLayer = resultLayers[resultLayers.length - 1];
               finalLayer.moveBefore(lastLayer);
             }
-          } catch (e) {}
+          } catch (e) { }
           resultLayers.push(finalLayer);
           vectorGroup.property(1).remove();
           proloop++;
@@ -1211,11 +1235,11 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         if (keepOriginal) {
           try {
             layer.enabled = false;
-          } catch (e) {}
+          } catch (e) { }
         } else {
           try {
             layer.remove();
-          } catch (e) {}
+          } catch (e) { }
         }
         return resultLayers;
       }
@@ -1281,7 +1305,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
             laytrans.property("ADBE Position_0").setValue(newX);
             laytrans.property("ADBE Position_1").setValue(newY);
           }
-        } catch (e) {}
+        } catch (e) { }
       }
 
       executePartsDecompose();
@@ -1336,7 +1360,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         btn2.preferredSize = [0, perH];
         btn3.preferredSize = [0, perH];
         grp.layout.layout(true);
-      } catch (e) {}
+      } catch (e) { }
     };
     return pal;
   }
@@ -1346,12 +1370,12 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
     try {
       ui.center();
       ui.show();
-    } catch (e) {}
+    } catch (e) { }
   } else if (ui) {
     try {
       ui.layout.layout(true);
       ui.layout.resize();
       ui.visible = true;
-    } catch (e) {}
+    } catch (e) { }
   }
 })(this);
