@@ -1,3 +1,7 @@
+
+> This repository contains the distributed build of Ae_Baramoji_ts.
+> Development takes place in https://github.com/rebuildup/Ae_Baramoji_ts
+
 # Ae_Baramoji
 AfterEffectsのテキストレイヤー分解スクリプトです
 
