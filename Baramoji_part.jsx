@@ -266,6 +266,94 @@
         }
     }
 
+    // Heuristics for detecting and removing artifacts left in a comp by a
+    // previous run of the decomposition algorithms.
+    //
+    // Each algorithm leaves layers with distinctive names. We use those names as
+    // a best-effort signal of "this comp already has a decomposition". Users who
+    // happen to have unrelated layers with matching names can pre-select to
+    // avoid false positives.
+    //
+    // Algorithm → naming convention:
+    //   - text decomposition: per-character TextLayer whose name is the single
+    //     character (possibly filtered through the same charFilter the algorithm
+    //     applies). See `nameTextArtifact`.
+    //   - shape decomposition: per-character ShapeLayer named "char_<char>".
+    //     See `nameShapeArtifact`.
+    //   - parts decomposition: per-part ShapeLayer named "<partName> Outline ".
+    //     See `namePartsArtifact`.
+    /**
+     * Return true if `sourceLayer` looks like it already has been decomposed
+     * inside `comp` by `algorithm`. The check is best-effort and only inspects
+     * siblings within the same comp.
+     */
+    function hasDecompositionArtifacts(comp, sourceLayer, algorithm) {
+        if (!comp || !sourceLayer)
+            return false;
+        for (var i = 1; i <= comp.numLayers; i++) {
+            var layer = comp.layer(i);
+            if (layer === sourceLayer)
+                continue;
+            if (matchesArtifact(layer))
+                return true;
+        }
+        return false;
+    }
+    /**
+     * Remove any layer in `comp` (other than `sourceLayer` itself) that looks
+     * like an artifact of a previous `algorithm` run. Returns the count of
+     * removed layers. Detection is the same heuristic as `hasDecompositionArtifacts`.
+     */
+    function removeDecompositionArtifacts(comp, sourceLayer, algorithm) {
+        if (!comp || !sourceLayer)
+            return 0;
+        // Collect matching layers first; removing while iterating mutates indices.
+        var toRemove = [];
+        for (var i = 1; i <= comp.numLayers; i++) {
+            var layer = comp.layer(i);
+            if (layer === sourceLayer)
+                continue;
+            if (matchesArtifact(layer))
+                toRemove.push(layer);
+        }
+        for (var _i = 0, toRemove_1 = toRemove; _i < toRemove_1.length; _i++) {
+            var layer = toRemove_1[_i];
+            try {
+                layer.remove();
+            }
+            catch (e) {
+            }
+        }
+        return toRemove.length;
+    }
+    function matchesArtifact(layer, sourceLayer, algorithm) {
+        if (!layer || !layer.name)
+            return false;
+        var name = String(layer.name);
+        {
+            // Parts decomposition leaves shape layers named "<partName> Outline ".
+            if (name.length < 10)
+                return false;
+            if (name.indexOf(' Outline ') < 0)
+                return false;
+            return isShapeOrVectorLayer(layer);
+        }
+    }
+    function isShapeOrVectorLayer(layer) {
+        try {
+            if (layer instanceof globalThis.ShapeLayer)
+                return true;
+        }
+        catch (e) {
+        }
+        try {
+            return layer.property(ADBE.RootVectorsGroup) !== null;
+        }
+        catch (e) {
+            return false;
+        }
+    }
+
     // Decompose a TextLayer (or ShapeLayer with vector content) into per-part
     // shape layers using path signed-area + point-in-polygon merge logic.
     //
@@ -281,7 +369,7 @@
     function runDecomposeTextToShapeParts(opts) {
         var _a, _b, _c, _d;
         if (opts === void 0) { opts = {}; }
-        var onProgress = opts.onProgress;
+        var onProgress = opts.onProgress, _e = opts.duplicateMode, duplicateMode = _e === void 0 ? 'skip' : _e;
         try {
             app.beginUndoGroup(UNDO.DecomposeTextToParts);
             onProgress === null || onProgress === void 0 ? void 0 : onProgress(0, 'Initializing...');
@@ -296,6 +384,16 @@
                 alert(ALERT.NoLayersParts);
                 app.endUndoGroup();
                 return;
+            }
+            if (duplicateMode === 'cancel') {
+                for (var i = 0; i < selectedLayers.length; i++) {
+                    if (hasDecompositionArtifacts(comp, selectedLayers[i], 'parts')) {
+                        alert('Aborted: a selected layer already has a parts decomposition. ' +
+                            'Re-run with Skip or Overwrite to change existing layers.');
+                        app.endUndoGroup();
+                        return;
+                    }
+                }
             }
             try {
                 var textLayerIndices = [];
@@ -330,6 +428,16 @@
                     onProgress === null || onProgress === void 0 ? void 0 : onProgress(Math.round((i / totalSteps) * 80), 'Processing layer ' + (i + 1) + '/' + totalSteps + '...');
                     var currentLayer = comp.layers[layerIndex];
                     currentLayer.selected = true;
+                    if (duplicateMode === 'skip' && hasDecompositionArtifacts(comp, currentLayer, 'parts')) {
+                        onProgress === null || onProgress === void 0 ? void 0 : onProgress(Math.round((i / totalSteps) * 80), 'Skipping already-decomposed layer: ' + currentLayer.name);
+                        currentLayer.selected = false;
+                        continue;
+                    }
+                    if (duplicateMode === 'overwrite') {
+                        var removed = removeDecompositionArtifacts(comp, currentLayer, 'parts');
+                        if (removed > 0)
+                            onProgress === null || onProgress === void 0 ? void 0 : onProgress(Math.round((i / totalSteps) * 80), 'Removed ' + removed + ' stale layer(s) for: ' + currentLayer.name);
+                    }
                     var baseShapeLayer = void 0;
                     if (currentLayer instanceof globalThis.TextLayer) {
                         app.executeCommand(CMD_CREATE_TEXT_SHAPE);
